@@ -7,9 +7,11 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.ListenerContainerPauseService
 import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.messaging.handler.annotation.Payload
+import org.springframework.stereotype.Component
 import java.lang.RuntimeException
 import java.time.Duration
 
+@Component
 class KafkaThrottledListener(
     private val pauser: ListenerContainerPauseService,
     private val delayTimeCalculator: DelayTimeCalculator,
@@ -17,13 +19,13 @@ class KafkaThrottledListener(
 ) {
 
     companion object {
-        private const val topic = "throttled-topic"
-        private const val listenerId = "$topic-listener"
+        const val TOPIC = "throttled-topic"
+        private const val listenerId = "$TOPIC-listener"
     }
 
     @KafkaListener(
         id = listenerId,
-        topics = [topic],
+        topics = [TOPIC],
     )
     fun listen(
         record: ConsumerRecord<String, String>,
