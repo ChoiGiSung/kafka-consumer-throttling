@@ -1,11 +1,14 @@
 package com.coco.throttling
 
+import com.coco.throttling.CpuUsageMonitorClient.MockCpuUsageMonitorClient
+import com.coco.throttling.DelayTimeCalculator.CpuMonitoringDelayTimeCalculator
 import org.springframework.boot.task.ThreadPoolTaskSchedulerBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.ListenerContainerPauseService
 import org.springframework.scheduling.TaskScheduler
+
 
 @Configuration
 class KafkaThrottlingConfig(
@@ -24,4 +27,10 @@ class KafkaThrottlingConfig(
     fun listenerContainerPauseService(): ListenerContainerPauseService {
         return ListenerContainerPauseService(registry, throttlingTaskScheduler())
     }
+
+    @Bean
+    fun cpuMonitoringDelayTimeCalculator(): DelayTimeCalculator {
+        return CpuMonitoringDelayTimeCalculator(MockCpuUsageMonitorClient())
+    }
+
 }
