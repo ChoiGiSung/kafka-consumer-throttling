@@ -13,8 +13,6 @@ import java.time.Duration
 
 @Component
 class KafkaThrottledListener(
-    private val pauser: ListenerContainerPauseService,
-    private val delayTimeCalculator: DelayTimeCalculator,
     private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry,
 ) {
 
@@ -30,21 +28,8 @@ class KafkaThrottledListener(
     fun listen(
         record: ConsumerRecord<String, String>,
         @Payload message: String,
-//        ack?
     ) {
-        val container = getContainer(record)
-
-        val delayTime = delayTimeCalculator.calculateDelayTime()
-        if (delayTime > 0) {
-            pauser.pause(container, Duration.ofMillis(delayTime))
-        }
-
+        println("listen - $message")
     }
 
-    private fun getContainer(
-        record: ConsumerRecord<String, String>,
-    ): MessageListenerContainer {
-        val container = kafkaListenerEndpointRegistry.getListenerContainer(listenerId)
-        return container?.getContainerFor(record.topic(), record.partition()) ?: throw RuntimeException("container not found")
-    }
 }
