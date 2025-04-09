@@ -24,6 +24,7 @@ class KafkaThrottledListener(
     @KafkaListener(
         id = listenerId,
         topics = [TOPIC],
+        concurrency = "3",
     )
     fun listen(
         record: ConsumerRecord<String, String>,
