@@ -37,7 +37,6 @@ class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
     }
 
     override fun onCommit(offsets: MutableMap<TopicPartition, OffsetAndMetadata>) {
-        //각 컨슈머 별로 commit하지 않나? 왜 파티션이 여러개일까
         //todo 어노테이션 기반으로 수정
         // 또 concurrent 확인 필요
         val targetContainers = findTargetContainers(offsets.keys, findTargetContainers())
