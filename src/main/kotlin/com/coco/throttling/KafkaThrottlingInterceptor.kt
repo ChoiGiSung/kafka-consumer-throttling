@@ -38,7 +38,7 @@ class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
 
     override fun onCommit(offsets: MutableMap<TopicPartition, OffsetAndMetadata>) {
         //todo 어노테이션 기반으로 수정
-        // 또 concurrent 확인 필요
+        // 또 concurrent 확인 필요. 컨슈머별 스레드? Partition Assignment Strategy 확인
         val targetContainers = findTargetContainers(offsets.keys, findTargetContainers())
 
         targetContainers.forEach { container ->
