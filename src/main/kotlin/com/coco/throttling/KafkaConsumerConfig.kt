@@ -12,6 +12,7 @@ class KafkaConsumerConfig(
     private val pauser: ListenerContainerPauseService,
     private val registry: KafkaListenerEndpointRegistry,
     private val delayTimeCalculator: DelayTimeCalculator,
+    private val throttlingListenerFinder: ThrottlingListenerFinder
 ) : DefaultKafkaConsumerFactoryCustomizer {
 
     override fun customize(consumerFactory: DefaultKafkaConsumerFactory<*, *>) {
@@ -20,6 +21,7 @@ class KafkaConsumerConfig(
             KafkaThrottlingInterceptor.PAUSE_TIME_CALCULATOR_CONFIG_KEY to delayTimeCalculator,
             KafkaThrottlingInterceptor.KAFKA_LISTENER_ENDPOINT_REGISTRY_CONFIG_KEY to registry,
             ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG to KafkaThrottlingInterceptor::class.java.name,
+            KafkaThrottlingInterceptor.KAFKA_THROTTLING_LISTENER_FINDER_CONFIG_KEY to throttlingListenerFinder,
         )
         consumerFactory.updateConfigs(customConfig)
     }

@@ -13,20 +13,36 @@ import java.time.Duration
 
 @Component
 class KafkaThrottledListener(
-    private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry,
 ) {
 
     companion object {
-        const val TOPIC = "throttled-topic"
+        const val TOPIC = "throttled-topic1"
         private const val listenerId = "$TOPIC-listener"
+
+        const val TOPIC_2 = "throttled-topic2"
+        private const val listenerId2 = "$TOPIC_2-listener"
     }
 
+    @KafkaThrottling
     @KafkaListener(
         id = listenerId,
         topics = [TOPIC],
         concurrency = "3",
     )
-    fun listen(
+    fun listenfff(
+        record: ConsumerRecord<String, String>,
+        @Payload message: String,
+    ) {
+        println("listen - $message")
+    }
+
+
+    @KafkaListener(
+        id = listenerId2,
+        topics = [TOPIC_2],
+        concurrency = "3",
+    )
+    fun listen2(
         record: ConsumerRecord<String, String>,
         @Payload message: String,
     ) {

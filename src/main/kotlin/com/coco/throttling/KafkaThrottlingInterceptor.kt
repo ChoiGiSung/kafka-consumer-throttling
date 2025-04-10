@@ -5,10 +5,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.TopicPartition
+import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
 import org.springframework.kafka.listener.KafkaMessageListenerContainer
 import org.springframework.kafka.listener.ListenerContainerPauseService
+import org.springframework.kafka.listener.adapter.MessagingMessageListenerAdapter
+import org.springframework.kafka.listener.adapter.RecordMessagingMessageListenerAdapter
 import java.time.Duration
 
 class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
@@ -17,16 +20,19 @@ class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
         const val PAUSE_SERVICE_CONFIG_KEY = "pauseService"
         const val PAUSE_TIME_CALCULATOR_CONFIG_KEY = "pauseTimeCalculator"
         const val KAFKA_LISTENER_ENDPOINT_REGISTRY_CONFIG_KEY = "listenerRegistry"
+        const val KAFKA_THROTTLING_LISTENER_FINDER_CONFIG_KEY = "KAFKA_THROTTLING_LISTENER_FINDER_CONFIG_KEY"
     }
 
     private lateinit var pauser: ListenerContainerPauseService
     private lateinit var registry: KafkaListenerEndpointRegistry
     private lateinit var delayTimeCalculator: DelayTimeCalculator
+    private lateinit var throttlingListenerFinder: ThrottlingListenerFinder
 
     override fun configure(configs: MutableMap<String, *>) {
         this.pauser = configs[PAUSE_SERVICE_CONFIG_KEY] as ListenerContainerPauseService
         this.delayTimeCalculator = configs[PAUSE_TIME_CALCULATOR_CONFIG_KEY] as DelayTimeCalculator
         this.registry = configs[KAFKA_LISTENER_ENDPOINT_REGISTRY_CONFIG_KEY] as KafkaListenerEndpointRegistry
+        this.throttlingListenerFinder = configs[KAFKA_THROTTLING_LISTENER_FINDER_CONFIG_KEY] as ThrottlingListenerFinder
     }
 
     override fun close() {
@@ -37,21 +43,22 @@ class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
     }
 
     override fun onCommit(offsets: MutableMap<TopicPartition, OffsetAndMetadata>) {
-        //todo 어노테이션 기반으로 수정
-        // 또 concurrent 확인 필요. 컨슈머별 스레드? Partition Assignment Strategy 확인
+        // Partition Assignment Strategy 확인
         val targetContainers = findTargetContainers(offsets.keys, findTargetContainers())
 
-        targetContainers.forEach { container ->
-            val pauseTime = delayTimeCalculator.calculateDelayTime()
-            if (pauseTime > 0) {
-                pauser.pause(container, Duration.ofMillis(pauseTime))
+        targetContainers
+            .forEach { container ->
+                val pauseTime = delayTimeCalculator.calculateDelayTime()
+                if (pauseTime > 0) {
+                    pauser.pause(container, Duration.ofMillis(pauseTime))
+                }
             }
-        }
     }
 
     private fun findTargetContainers(): List<ConcurrentMessageListenerContainer<String, String>> {
         return registry.listenerContainers
             .filterIsInstance<ConcurrentMessageListenerContainer<String, String>>()
+            .filter { throttlingListenerFinder.isThrottlingTarget(it.listenerId) }
     }
 
     private fun findTargetContainers(

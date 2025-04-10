@@ -12,7 +12,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka
 @SpringBootTest
 @EmbeddedKafka(
     partitions = 6,
-    topics = [KafkaThrottledListener.TOPIC],
+    topics = [KafkaThrottledListener.TOPIC, KafkaThrottledListener.TOPIC_2, KafkaThrottledListener3.TOPIC_3],
     brokerProperties = [
         "listeners=PLAINTEXT://localhost:9092",
         "port=9092",
@@ -34,6 +34,8 @@ class ThrottlingApplicationTests {
     private fun sendMessage(i: Int) {
         try {
             val result = kafkaTemplate.send(KafkaThrottledListener.TOPIC, i.toString(), "message$i").get()
+            val result2 = kafkaTemplate.send(KafkaThrottledListener.TOPIC_2, i.toString(), "message$i").get()
+            val result3 = kafkaTemplate.send(KafkaThrottledListener3.TOPIC_3, i.toString(), "message$i").get()
             val partition = result.recordMetadata.partition()
         } catch (_: Exception) {
         }
