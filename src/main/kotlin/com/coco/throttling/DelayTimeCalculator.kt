@@ -1,5 +1,6 @@
 package com.coco.throttling
 
+import com.coco.throttling.monitoring.CpuUsageMonitorClient
 import kotlin.math.pow
 
 interface DelayTimeCalculator {

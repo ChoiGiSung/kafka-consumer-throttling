@@ -43,7 +43,6 @@ class KafkaThrottlingInterceptor : ConsumerInterceptor<String, String> {
     }
 
     override fun onCommit(offsets: MutableMap<TopicPartition, OffsetAndMetadata>) {
-        // TODO: Partition Assignment Strategy 확인
         val targetContainers = findTargetContainers(offsets.keys, findTargetContainers())
 
         targetContainers
